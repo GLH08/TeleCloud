@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  telecloud:
+    build: .
+    container_name: telecloud
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+      - db
+    networks:
+      - telecloud-network
+
+  redis:
+    image: redis:alpine
+    container_name: telecloud-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - telecloud-network
+
+  db:
+    image: postgres:13-alpine
+    container_name: telecloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - telecloud-network
+
+networks:
+  telecloud-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:
